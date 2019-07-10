@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<script type="text/javascript" src="js/jquery-3.3.1.js"></script>
+<script type="text/javascript" src="js/getParameter.js"></script>
+<script>
+    function find(cid,c,rname) {
+
+        $.post("route/findAll",{"cid":cid,"currentPage":c,"rname":rname},function (data) {
+            var befPage = data.currentPage-1;
+            var nexPage = data.currentPage+1;
+            if (befPage <= 0) {
+                befPage = 1;
+            }
+            if (nexPage >= data.totalPage) {
+                nexPage = data.totalPage;
+            }
+
+            //加载页码
+            var begin;
+            var end;
+            if (data.totalPage <= 10) {
+                begin = 1;
+                end = data.totalPage;
+            } else {
+                begin = data.currentPage - 5;
+                end = data.currentPage + 4;
+            }
+
+            if (begin < 1) {
+                begin = 1;
+                end = begin + 9;
+            }
+            if (end > data.totalPage) {
+                end = data.totalPage;
+                begin = end - 9;
+            }
+
+
+            var $pageNum = $(".pageNum ul");
+            $pageNum.html("<li><a href='javascript:void(0)' onclick='find("+cid+",1,\""+rname+"\")'>首页</a></li><li class=\"threeword\"><a href='javascript:void(0)' onclick='find("+cid+","+befPage+",\""+rname+"\")'>上一页</a></li>");
+            for (var i = begin; i <= end; i++) {
+                if (data.currentPage == i) {
+                    $pageNum.append("<li class='curPage' onclick='find("+cid+","+i+",\""+rname+"\")'><a href='javascript:void(0)' >"+i+"</a></li>")
+                } else {
+                    $pageNum.append("<li onclick='find("+cid+","+i+",\""+rname+"\")'><a href='javascript:void(0)' >"+i+"</a></li>")
+
+                }
+            }
+            $pageNum.append("<li class=\"threeword\"><a href='javascript:void(0)' onclick='find("+cid+","+nexPage+",\""+rname+"\")'>下一页</a></li><li class=\"threeword\"><a href='javascript:void(0)' onclick='find("+cid+","+data.totalPage+",\""+rname+"\")'>末页</a></li>");
+
+            $(".page_num_inf span:eq(0)").html(data.totalPage);
+            $(".page_num_inf span:eq(1)").html(data.totalCount);
+
+            //加载数据
+            var $routeMsg = $("#routeMsg");
+            $routeMsg.html("");
+            for (var j = 0; j < data.list.length; j++) {
+                $routeMsg.append("<li>" +
+                    "<div class=\"img\"><img src=\""+data.list[j].rimage+"\" style='width: 299px'></div>" +
+                    "<div class=\"text1\"><p>"+data.list[j].rname+"</p><br/><p>"+data.list[j].routeIntroduce+"</p></div>" +
+                    "<div class=\"price\"><p class=\"price_num\"><span>&yen;</span><span>"+data.list[j].price+"</span><span>起</span></p><p><a href='route_detail.html?rid="+data.list[j].rid+"'>查看详情</a></p></div>" +
+                    "</li>")
+            }
+
+        });
+
+        $.post("rank/findThree",{"cid":cid},function (data) {
+            var str = "";
+            for (var i = 0; i < data.length; i++) {
+                str += '<li>' +
+                    '<div class="left"><img src="'+data[i].rimage+'" alt=""></div>' +
+                    '<div class="right">' +
+                    '<p>'+data[i].rname+'</p>' +
+                    '<p>网付价<span>&yen;<span>'+data[i].price+'</span>起</span></p>' +
+                    '</div>' +
+                    '</li>'
+            }
+            $("#favoriteRank").html(str);
+        })
+    }
+    $(function () {
+        var cid = getParameter("cid");
+        var rname = getParameter("rname");
+
+        /*if(rname){
+            //url解码
+            rname = window.decodeURIComponent(rname);
+        }*/
+
+        find(cid,1,rname);
+    })
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>黑马旅游-搜索</title>
+    <link rel="stylesheet" type="text/css" href="css/common.css">
+    <link rel="stylesheet" href="css/search.css">
+    <script src="js/jquery-3.3.1.js"></script>
+</head>
+<body>
+<!--引入头部-->
+<div id="header"></div>
+    <div class="page_one">
+        <div class="contant">
+            <div class="crumbs">
+                <img src="images/search.png" alt="">
+                <p>黑马旅行><span>搜索结果</span></p>
+            </div>
+            <div class="xinxi clearfix">
+                <div class="left">
+                    <div class="header">
+                        <span>商品信息</span>
+                        <span class="jg">价格</span>
+                    </div>
+                    <ul id="routeMsg">
+                    </ul>
+                    <div class="page_num_inf">
+                        <i></i> 共
+                        <span>12</span>页<span>132</span>条
+                    </div>
+                    <div class="pageNum">
+                        <ul>
+                        </ul>
+                    </div>
+                </div>
+                <div class="right">
+                    <div class="top">
+                        <div class="hot">HOT</div>
+                        <span>热门推荐</span>
+                    </div>
+                    <ul id="favoriteRank">
+                        <li>
+                            <div class="left"><img src="images/04-search_09.jpg" alt=""></div>
+                            <div class="right">
+                                <p>清远新银盏温泉度假村酒店/自由行套...</p>
+                                <p>网付价<span>&yen;<span>899</span>起</span>
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--引入头部-->
+    <div id="footer"></div>
+    <!--导入布局js，共享header和footer-->
+    <script type="text/javascript" src="js/include.js"></script>
+</body>
+
+</html>
